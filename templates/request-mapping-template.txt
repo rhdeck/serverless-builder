@@ -1,0 +1,12 @@
+{
+    "version" : "2017-02-28",
+    "operation": "Invoke",
+    "payload": {
+        "func": "{{{functionName}}}",
+        "arguments": $util.toJson($context.arguments),
+        "source": $util.toJson($context.source),
+        "id": $util.toJson($context.identity.username),
+        "counselorId": $util.toJson($context.identity.claims["custom:counselorId"]),
+        "isBatch": false
+    }
+}

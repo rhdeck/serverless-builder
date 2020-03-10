@@ -1,0 +1,26 @@
+{
+  "name": "@raydeck/serverless-builder",
+  "version": "1.0.0",
+  "description": "CLI tool to build serverless.yaml and handlers.js ",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhdeck/serverless-builder.git"
+  },
+  "author": "Ray Deck",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rhdeck/serverless-builder/issues"
+  },
+  "homepage": "https://github.com/rhdeck/serverless-builder#readme",
+  "bin": {
+    "serverless-builder": "./makegqlserverless.js"
+  },
+  "devDependencies": {
+    "mustache": "^4.0.0",
+    "rimraf": "^3.0.2",
+    "yaml": "^1.8.0"
+  }
+}
