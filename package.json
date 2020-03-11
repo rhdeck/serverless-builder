@@ -18,7 +18,7 @@
   "bin": {
     "serverless-builder": "./makegqlserverless.js"
   },
-  "devDependencies": {
+  "dependencies": {
     "mustache": "^4.0.0",
     "rimraf": "^3.0.2",
     "yaml": "^1.8.0"
