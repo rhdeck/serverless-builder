@@ -11,6 +11,7 @@ const { join, basename } = require("path");
 const mustache = require("mustache");
 const rimraf = require("rimraf");
 const Yaml = require("yaml");
+const { strOptions } = require("yaml/types");
 //#endregion
 const prepend = "";
 const { serverlessBuilder = {} } = JSON.parse(
@@ -153,6 +154,8 @@ const {
         rate,
         cloudwatchLog,
         private,
+        cognitoUserPool,
+        trigger,
         ...rest
       }
     ]
@@ -175,6 +178,7 @@ const {
     if (runtime) o.runtime = runtime;
     if (name) o.name = name;
     if (description) o.description = description;
+    if (cognitoUserPool) o.cognitoUserPool = { pool: cognitoUserPool, trigger };
     const tags = Object.entries(rest)
       .filter(([k, v]) => k.indexOf("tag-") === 0)
       .map(([k, v]) => [k.substring(4), v]);
@@ -284,6 +288,7 @@ if (gqlparts.length) {
   };
 }
 console.log(JSON.stringify(baseObj, null, 2));
+strOptions.defaultType = "QUOTE_DOUBLE";
 const output = Yaml.stringify(baseObj);
 writeFileSync(outputPath, output);
 console.log("Recommended handler.js exports:");
