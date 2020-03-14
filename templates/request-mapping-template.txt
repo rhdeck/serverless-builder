@@ -5,8 +5,7 @@
         "func": "{{{functionName}}}",
         "arguments": $util.toJson($context.arguments),
         "source": $util.toJson($context.source),
-        "id": $util.toJson($context.identity.username),
-        "counselorId": $util.toJson($context.identity.claims["custom:counselorId"]),
+        "identity": $util.toJson($context.identity),
         "isBatch": false
     }
 }

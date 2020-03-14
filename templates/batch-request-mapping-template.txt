@@ -5,8 +5,7 @@
     "payload": {
         "func": "{{{functionName}}}",
         "arguments": $util.toJson($context.arguments),
-        "id": $util.toJson($context.identity.username),
-        "counselorId": $util.toJson($context.identity.claims["custom:counselorId"]),
+        "identity": $util.toJson($context.identity),
         "source": $util.toJson($context.source),
         "isBatch": true
     }
