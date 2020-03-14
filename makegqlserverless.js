@@ -7,12 +7,49 @@ const {
   mkdirSync,
   copyFileSync
 } = require("fs");
-const { join, basename } = require("path");
+const { join, basename, relative } = require("path");
 const mustache = require("mustache");
 const rimraf = require("rimraf");
 const Yaml = require("yaml");
 const { strOptions } = require("yaml/types");
 //#endregion
+function joinExists() {
+  //find all combinations
+  console.log(arguments);
+  return Object.values(arguments)
+    .reduce(
+      (possibilities, a) => {
+        if (Array.isArray(a)) {
+          //look for first match
+          const newPs = possibilities.reduce(
+            (o, possibility) =>
+              a.reduce(
+                (o2, item) =>
+                  existsSync(join(possibility, item))
+                    ? [...o2, join(possibility, item)]
+                    : o2,
+                o
+              ),
+            []
+          );
+          if (!newPs.length) throw ("No existing path at base", possibilities);
+          return newPs;
+        } else {
+          const o = possibilities.reduce(
+            (o, possibility) =>
+              existsSync(join(possibility, a))
+                ? [...o, join(possibility, a)]
+                : o,
+            []
+          );
+          if (!o.length) throw ("No existing path at base", possibilities);
+          return o;
+        }
+      },
+      [""]
+    )
+    .shift();
+}
 const prepend = "";
 const { serverlessBuilder = {} } = JSON.parse(
   readFileSync(join(process.cwd(), "package.json"))
@@ -20,17 +57,15 @@ const { serverlessBuilder = {} } = JSON.parse(
 const basePath = serverlessBuilder.basePath || join(process.cwd(), "base.yml");
 const outputPath =
   serverlessBuilder.outputPath || join(process.cwd(), "serverless.yml");
+const defaultTemplatesPath = join(__dirname, "templates");
 const templatesPath =
-  serverlessBuilder.templatesPath || join(__dirname, "templates");
+  serverlessBuilder.templatesPath || join(process.cwd(), "templates");
 const mappingTemplatesPath = join(process.cwd(), "mapping-templates");
 const handlersPath =
   serverlessBuilder.handlersPath || join(process.cwd(), "handlers.js");
 const wrapperBasePath =
   serverlessBuilder.wrapperBasePath ||
-  existsSync(join(process.cwd(), "wrapper_base.js"))
-    ? join(process.cwd(), "wrapper_base.js")
-    : join(__dirname, "templates", "wrapper_base.js");
-
+  joinExists([process.cwd(), __dirname], "templates", "wrapper_base.js");
 const baseFileName = basename(handlersPath, ".js");
 
 if (existsSync(mappingTemplatesPath)) rimraf.sync(mappingTemplatesPath);
@@ -83,7 +118,7 @@ if (Object.values(pairInfo).find(({ gql }) => gql)) {
     "default-result-mapping-template.txt"
   ].map(thisFile =>
     copyFileSync(
-      join(templatesPath, thisFile),
+      joinExists([templatesPath, defaultTemplatesPath], thisFile),
       join(mappingTemplatesPath, thisFile)
     )
   );
@@ -91,8 +126,8 @@ if (Object.values(pairInfo).find(({ gql }) => gql)) {
 const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
 const makeBatchMappingTemplate = (functionName, isBatch) => {
   const source = readFileSync(
-    join(
-      templatesPath,
+    joinExists(
+      [templatesPath, defaultTemplatesPath],
       isBatch
         ? "batch-request-mapping-template.txt"
         : "request-mapping-template.txt"
@@ -275,7 +310,7 @@ const wrapperText = mustache.render(wrapperBase, {
   aliases: aliases.join(","),
   wrappers: wrappers.join("\n"),
   exporteds: exporteds.length ? "," + [exporteds].join("\n") : null,
-  handlersPath,
+  handlersPath: "./" + relative(process.cwd(), handlersPath),
   resolvers: gqlparts && gqlparts.join("\n")
 });
 writeFileSync(join(process.cwd(), baseFileName + "_wrapper.js"), wrapperText);
