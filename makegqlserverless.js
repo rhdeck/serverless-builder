@@ -227,21 +227,25 @@ const {
     if (
       [s3, sqs, dynamodb, http, schedule, rate, cloudwatchLog].find(Boolean)
     ) {
-      o.events = {};
-      if (s3) o.events["s3"] = s3.split(",");
+      o.events = [];
+      if (s3) o.events.push({ s3: s3.split(",") });
 
       if (dynamodb)
-        o.events["stream"] = { type: "dynamodb", batchSize, arn: dynamodb };
-      if (sqs) o.events["sqs"] = sqs.split(",");
+        o.events.push({
+          stream: { type: "dynamodb", batchSize, arn: dynamodb }
+        });
+      if (sqs) o.events.push({ sqs: sqs.split(",") });
       if (http)
-        o.events["http"] = {
-          path: http,
-          method: method ? method : "post",
-          cors:
-            typeof cors !== "undefined" ? (cors ? "true" : "false") : "true",
-          private:
-            private !== "undefined" ? (private ? "true" : "false") : "false"
-        };
+        o.events.push({
+          http: {
+            path: http,
+            method: method ? method : "post",
+            cors:
+              typeof cors !== "undefined" ? (cors ? "true" : "false") : "true",
+            private:
+              private !== "undefined" ? (private ? "true" : "false") : "false"
+          }
+        });
       if (rate) o.events["rate"] = `rate(${rate} minute)`;
       if (cloudwatchLog) o.events["cloudwatchLog"] = cloudwatchLog.split(",");
     }
