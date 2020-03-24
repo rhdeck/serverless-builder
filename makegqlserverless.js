@@ -228,8 +228,7 @@ const {
       [s3, sqs, dynamodb, http, schedule, rate, cloudwatchLog].find(Boolean)
     ) {
       o.events = [];
-      if (s3) o.events.push({ s3: s3.split(",") });
-
+      if (s3) s3.split(",").forEach(s3 => o.events.push({ s3 }));
       if (dynamodb)
         o.events.push({
           stream: { type: "dynamodb", batchSize, arn: dynamodb }
@@ -258,8 +257,8 @@ const {
       field,
       request: `${functionName}-request.txt`,
       response: isBatch
-        ? "default-batch-response-mapping-template.txt"
-        : "default-response-mapping-template.txt"
+        ? "default-batch-result-mapping-template.txt"
+        : "default-result-mapping-template.txt"
     };
     if (gql) makeBatchMappingTemplate(functionName, isBatch);
 
