@@ -256,9 +256,6 @@ const {
       if (rate) o.events["rate"] = `rate(${rate} minute)`;
       if (cloudwatchLog) o.events["cloudwatchLog"] = cloudwatchLog.split(",");
       if (cognitoUserPool) {
-        if (!o.events["cognitoUserPool"]) {
-          o.events["cognitoUserPool"] = [];
-        }
         o.events.push({
           cognitoUserPool: {
             pool: cognitoUserPool,
