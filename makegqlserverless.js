@@ -213,7 +213,6 @@ const {
     if (runtime) o.runtime = runtime;
     if (name) o.name = name;
     if (description) o.description = description;
-    if (cognitoUserPool) o.cognitoUserPool = { pool: cognitoUserPool, trigger };
     const tags = Object.entries(rest)
       .filter(([k, v]) => k.indexOf("tag-") === 0)
       .map(([k, v]) => [k.substring(4), v]);
@@ -225,7 +224,16 @@ const {
     if (envs.length)
       o.environment = envsa.reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
     if (
-      [s3, sqs, dynamodb, http, schedule, rate, cloudwatchLog].find(Boolean)
+      [
+        s3,
+        sqs,
+        dynamodb,
+        http,
+        schedule,
+        rate,
+        cloudwatchLog,
+        cognitoUserPool
+      ].find(Boolean)
     ) {
       o.events = [];
       if (s3) s3.split(",").forEach(s3 => o.events.push({ s3 }));
@@ -247,6 +255,14 @@ const {
         });
       if (rate) o.events["rate"] = `rate(${rate} minute)`;
       if (cloudwatchLog) o.events["cloudwatchLog"] = cloudwatchLog.split(",");
+      if (cognitoUserPool) {
+        o.events.push({
+          cognitoUserPool: {
+            pool: cognitoUserPool,
+            trigger
+          }
+        });
+      }
     }
     if (o) functions[prependedName] = o;
     //Make resolver text
