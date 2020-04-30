@@ -114,8 +114,6 @@ if (existsSync(join(process.cwd(), "package.json"))) {
     }
   });
 }
-// console.log("pain is an old friend");
-// process.exit(1);
 const wrapperBase = readFileSync(wrapperBasePath, { encoding: "UTF8" });
 //Walk lines ot get the gql and first line following
 const pairs = lines.reduce((out, thisLine) => {
