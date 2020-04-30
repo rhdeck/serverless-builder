@@ -5,7 +5,7 @@ const {
   writeFileSync,
   existsSync,
   mkdirSync,
-  copyFileSync
+  copyFileSync,
 } = require("fs");
 const { join, basename, relative } = require("path");
 const mustache = require("mustache");
@@ -73,6 +73,49 @@ const text = readFileSync(handlersPath, { encoding: "UTF8" });
 const lines = text.split("\n");
 const base = readFileSync(basePath, { encoding: "UTF8" });
 const baseObj = Yaml.parse(base);
+//walk my dependencies for sub-path
+if (existsSync(join(process.cwd(), "package.json"))) {
+  const { dependencies, devDependencies } = JSON.parse(
+    readFileSync(join(process.cwd(), "package.json"), { encoding: "utf8" })
+  );
+  const x = [...Object.keys(dependencies), ...Object.keys(devDependencies)];
+  x.forEach((key) => {
+    //is there a common.yml?
+    const dependencyPath = join(
+      process.cwd(),
+      "node_modules",
+      key,
+      "common.yml"
+    );
+    if (existsSync(dependencyPath)) {
+      const { environment, Policies } = Yaml.parse(
+        readFileSync(dependencyPath, { encoding: "utf8" })
+      );
+      if (environment) {
+        baseObj.provider.environment = {
+          ...environment,
+          ...baseObj.provider.environment,
+        };
+      }
+      if (Policies) {
+        if (baseObj.resources && baseObj.resources.Resources) {
+          Object.entries(baseObj.resources.Resources).forEach(
+            ([key, { type, Properties: { Policies: oldPolicies } = {} }]) => {
+              if (type === "AWS::IAM::Role" && oldPolicies) {
+                baseObj.resources.Resources[key].Properties.Policies = [
+                  ...oldPolicies,
+                  ...Policies,
+                ];
+              }
+            }
+          );
+        }
+      }
+    }
+  });
+}
+// console.log("pain is an old friend");
+// process.exit(1);
 const wrapperBase = readFileSync(wrapperBasePath, { encoding: "UTF8" });
 //Walk lines ot get the gql and first line following
 const pairs = lines.reduce((out, thisLine) => {
@@ -88,7 +131,7 @@ const pairInfo = pairs.reduce((out, thisPair) => {
   const functionName = thisPair[1].split(" ")[1];
   let functionInfo = thisPair[0]
     .split(" ")
-    .filter(item => !["//@lambda"].includes(item))
+    .filter((item) => !["//@lambda"].includes(item))
     .reduce(
       (out, thisHeader) => {
         if (thisHeader.includes("=")) {
@@ -115,15 +158,15 @@ if (Object.values(pairInfo).find(({ gql }) => gql)) {
   mkdirSync(mappingTemplatesPath);
   [
     "default-batch-result-mapping-template.txt",
-    "default-result-mapping-template.txt"
-  ].map(thisFile =>
+    "default-result-mapping-template.txt",
+  ].map((thisFile) =>
     copyFileSync(
       joinExists([templatesPath, defaultTemplatesPath], thisFile),
       join(mappingTemplatesPath, thisFile)
     )
   );
 }
-const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
+const capitalize = (string) => string.charAt(0).toUpperCase() + string.slice(1);
 const makeBatchMappingTemplate = (functionName, isBatch) => {
   const source = readFileSync(
     joinExists(
@@ -146,7 +189,7 @@ const {
   exporteds,
   wrappers,
   gqlparts,
-  funcs
+  funcs,
 } = Object.entries(pairInfo).reduce(
   (
     {
@@ -156,7 +199,7 @@ const {
       exporteds,
       wrappers,
       gqlparts,
-      funcs
+      funcs,
     },
     [
       functionName,
@@ -192,7 +235,7 @@ const {
         cognitoUserPool,
         trigger,
         ...rest
-      }
+      },
     ]
   ) => {
     const capitalizedFunctionName = capitalize(functionName);
@@ -200,7 +243,7 @@ const {
     //Make function text
     const o = !gql && {
       handler: `${baseFileName}_wrapper.${functionName}`,
-      role: role || { "Fn::GetAtt": ["MainRole", "Arn"] }
+      role: role || { "Fn::GetAtt": ["MainRole", "Arn"] },
     };
     if (memorySize) o.memorySize = memorySize;
     if (layers) o.layers = layers.split(",");
@@ -232,14 +275,14 @@ const {
         schedule,
         rate,
         cloudwatchLog,
-        cognitoUserPool
+        cognitoUserPool,
       ].find(Boolean)
     ) {
       o.events = [];
-      if (s3) s3.split(",").forEach(s3 => o.events.push({ s3 }));
+      if (s3) s3.split(",").forEach((s3) => o.events.push({ s3 }));
       if (dynamodb)
         o.events.push({
-          stream: { type: "dynamodb", batchSize, arn: dynamodb }
+          stream: { type: "dynamodb", batchSize, arn: dynamodb },
         });
       if (sqs) o.events.push({ sqs: sqs.split(",") });
       if (http)
@@ -250,8 +293,8 @@ const {
             cors:
               typeof cors !== "undefined" ? (cors ? "true" : "false") : "true",
             private:
-              private !== "undefined" ? (private ? "true" : "false") : "false"
-          }
+              private !== "undefined" ? (private ? "true" : "false") : "false",
+          },
         });
       if (rate) o.events["rate"] = `rate(${rate} minute)`;
       if (cloudwatchLog) o.events["cloudwatchLog"] = cloudwatchLog.split(",");
@@ -259,8 +302,8 @@ const {
         o.events.push({
           cognitoUserPool: {
             pool: cognitoUserPool,
-            trigger
-          }
+            trigger,
+          },
         });
       }
     }
@@ -274,7 +317,7 @@ const {
       request: `${functionName}-request.txt`,
       response: isBatch
         ? "default-batch-result-mapping-template.txt"
-        : "default-result-mapping-template.txt"
+        : "default-result-mapping-template.txt",
     };
     if (gql) makeBatchMappingTemplate(functionName, isBatch);
 
@@ -292,7 +335,7 @@ const {
       ),
       exporteds: [...exporteds, thisExport].filter(Boolean),
       gqlparts: [...gqlparts, gqlpart].filter(Boolean),
-      funcs: [...funcs, functionName].filter(Boolean)
+      funcs: [...funcs, functionName].filter(Boolean),
     };
   },
   {
@@ -302,7 +345,7 @@ const {
     aliases: [],
     exporteds: [],
     gqlparts: [],
-    funcs: []
+    funcs: [],
   }
 );
 
@@ -315,14 +358,14 @@ if (gqlparts.length) {
       config: {
         serviceRoleArn: { "Fn::GetAtt": ["MainRole", "Arn"] },
         lambdaFunctionArn: {
-          "Fn::GetAtt": ["AppSyncResolverLambdaFunction", "Arn"]
-        }
-      }
-    }
+          "Fn::GetAtt": ["AppSyncResolverLambdaFunction", "Arn"],
+        },
+      },
+    },
   ];
   baseObj.custom.appSync.mappingTemplates = [
     ...(baseObj.mappingTemplates || []),
-    ...mappingTemplates
+    ...mappingTemplates,
   ];
 }
 const wrapperText = mustache.render(wrapperBase, {
@@ -330,7 +373,7 @@ const wrapperText = mustache.render(wrapperBase, {
   wrappers: wrappers.join("\n"),
   exporteds: exporteds.length ? "," + [exporteds].join("\n") : null,
   handlersPath: "./" + relative(process.cwd(), handlersPath),
-  resolvers: gqlparts && gqlparts.join("\n")
+  resolvers: gqlparts && gqlparts.join("\n"),
 });
 writeFileSync(join(process.cwd(), baseFileName + "_wrapper.js"), wrapperText);
 baseObj.functions = { ...(baseObj.functions || {}), ...functions };
@@ -338,7 +381,7 @@ if (gqlparts.length) {
   baseObj.functions.appSyncResolver = {
     handler: `${baseFileName}_wrapper.appSyncResolver`,
     role: { "Fn::GetAtt": ["MainRole", "Arn"] },
-    warmup: { enabled: "true" }
+    warmup: { enabled: "true" },
   };
 }
 console.log(JSON.stringify(baseObj, null, 2));
