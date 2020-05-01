@@ -7,7 +7,7 @@ const {
   mkdirSync,
   copyFileSync,
 } = require("fs");
-const { join, basename, relative } = require("path");
+const { join, basename, relative, resolve } = require("path");
 const mustache = require("mustache");
 const rimraf = require("rimraf");
 const Yaml = require("yaml");
@@ -51,9 +51,42 @@ function joinExists() {
     .shift();
 }
 const prepend = "";
-const { serverlessBuilder = {} } = JSON.parse(
+const { serverlessBuilder = {}, serverless } = JSON.parse(
   readFileSync(join(process.cwd(), "package.json"))
 );
+if (existsSync(join(process.cwd(), "package.json"))) {
+  const package = JSON.parse(
+    readFileSync(join(process.cwd(), "package.json"), { encoding: "utf8" })
+  );
+  const { dependencies, devDependencies } = package;
+  const x = [...Object.keys(dependencies), ...Object.keys(devDependencies)];
+  x.forEach((key) => {
+    //is there a common.yml?
+    const dependencyPath = join(
+      process.cwd(),
+      "node_modules",
+      key,
+      "package.json"
+    );
+    const { serverless: { commonDependencies: thisDep } = {} } = JSON.parse(
+      readFileSync(dependencyPath, { encoding: "utf8" })
+    );
+    thisDep && console.log("Foun dep of concern", thisDep);
+    thisDep &&
+      Object.keys(thisDep)
+        .filter((dep) => !Object.keys(serverless.dependencies).includes(dep))
+        .forEach((dep) => {
+          if (resolve(thisDep[dep]) === process.cwd()) return;
+          console.log("I found a dep", dep);
+          package.serverless.dependencies[dep] = thisDep[dep];
+        });
+  });
+  console.log("the new package is ", package.serverless);
+  writeFileSync(
+    join(process.cwd(), "package.json"),
+    JSON.stringify(package, null, 2)
+  );
+}
 const basePath = serverlessBuilder.basePath || join(process.cwd(), "base.yml");
 const outputPath =
   serverlessBuilder.outputPath || join(process.cwd(), "serverless.yml");
