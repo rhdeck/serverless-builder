@@ -133,12 +133,21 @@ if (existsSync(join(process.cwd(), "package.json"))) {
       if (Policies) {
         if (baseObj.resources && baseObj.resources.Resources) {
           Object.entries(baseObj.resources.Resources).forEach(
-            ([key, { type, Properties: { Policies: oldPolicies } = {} }]) => {
-              if (type === "AWS::IAM::Role" && oldPolicies) {
-                baseObj.resources.Resources[key].Properties.Policies = [
-                  ...oldPolicies,
-                  ...Policies,
-                ];
+            ([key, { Type, Properties: { Policies: oldPolicies } = {} }]) => {
+              console.log("Resources", key, Type);
+              if (Type === "AWS::IAM::Role" && oldPolicies) {
+                //Now we mneed to merge into "MainPolicy"
+                const MainPolicy = oldPolicies.find(
+                  ({ PolicyName }) => PolicyName === "MainPolicy"
+                );
+                if (MainPolicy) {
+                  if (!MainPolicy.PolicyDocument.Statement)
+                    MainPolicy.PolicyDocument.Statement = [];
+                  MainPolicy.PolicyDocument.Statement = [
+                    ...MainPolicy.PolicyDocument.Statement,
+                    ...Policies,
+                  ];
+                }
               }
             }
           );
