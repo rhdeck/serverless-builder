@@ -15,7 +15,6 @@ const { strOptions } = require("yaml/types");
 //#endregion
 function joinExists() {
   //find all combinations
-  console.log(arguments);
   return Object.values(arguments)
     .reduce(
       (possibilities, a) => {
@@ -71,17 +70,14 @@ if (existsSync(join(process.cwd(), "package.json"))) {
     const { serverless: { commonDependencies: thisDep } = {} } = JSON.parse(
       readFileSync(dependencyPath, { encoding: "utf8" })
     );
-    thisDep && console.log("Foun dep of concern", thisDep);
     thisDep &&
       Object.keys(thisDep)
         .filter((dep) => !Object.keys(serverless.dependencies).includes(dep))
         .forEach((dep) => {
           if (resolve(thisDep[dep]) === process.cwd()) return;
-          console.log("I found a dep", dep);
           package.serverless.dependencies[dep] = thisDep[dep];
         });
   });
-  console.log("the new package is ", package.serverless);
   writeFileSync(
     join(process.cwd(), "package.json"),
     JSON.stringify(package, null, 2)
@@ -134,7 +130,6 @@ if (existsSync(join(process.cwd(), "package.json"))) {
         if (baseObj.resources && baseObj.resources.Resources) {
           Object.entries(baseObj.resources.Resources).forEach(
             ([key, { Type, Properties: { Policies: oldPolicies } = {} }]) => {
-              console.log("Resources", key, Type);
               if (Type === "AWS::IAM::Role" && oldPolicies) {
                 //Now we mneed to merge into "MainPolicy"
                 const MainPolicy = oldPolicies.find(
@@ -194,7 +189,6 @@ const pairInfo = pairs.reduce((out, thisPair) => {
 }, {});
 //Are there any gqls?
 if (Object.values(pairInfo).find(({ gql }) => gql)) {
-  // console.log(mappingTemplates);
   mkdirSync(mappingTemplatesPath);
   [
     "default-batch-result-mapping-template.txt",
@@ -424,10 +418,9 @@ if (gqlparts.length) {
     warmup: { enabled: "true" },
   };
 }
-console.log(JSON.stringify(baseObj, null, 2));
 strOptions.defaultType = "QUOTE_DOUBLE";
 const output = Yaml.stringify(baseObj);
 writeFileSync(outputPath, output);
-console.log("Recommended handler.js exports:");
+console.log("//Recommended handler.js exports:");
 process.stdout.write(funcs.join(",\n"));
-console.log("\n\nDONE");
+console.log("\n\n// DONE");
