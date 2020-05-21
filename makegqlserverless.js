@@ -268,6 +268,7 @@ const {
         private,
         cognitoUserPool,
         trigger,
+        warmup,
         ...rest
       },
     ]
@@ -300,6 +301,8 @@ const {
       .map(([k, v]) => [k.substring("environment-".length), v]);
     if (envs.length)
       o.environment = envsa.reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
+    if (warmup) o.warmup = { enabled: "true" };
+
     if (
       [
         s3,
