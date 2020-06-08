@@ -6,6 +6,7 @@
         "arguments": $util.toJson($context.arguments),
         "source": $util.toJson($context.source),
         "identity": $util.toJson($context.identity),
+        "headers": $util.toJson($context.request.headers),
         "isBatch": false
     }
 }
