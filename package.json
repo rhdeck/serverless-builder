@@ -1,6 +1,6 @@
 {
   "name": "@raydeck/serverless-builder",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "CLI tool to build serverless.yaml and handlers.js ",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
