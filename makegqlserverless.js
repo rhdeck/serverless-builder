@@ -7,7 +7,7 @@ const {
   mkdirSync,
   copyFileSync,
 } = require("fs");
-const { join, basename, relative, resolve } = require("path");
+const { join, basename, relative, resolve, extname } = require("path");
 const mustache = require("mustache");
 const rimraf = require("rimraf");
 const Yaml = require("yaml");
@@ -91,11 +91,15 @@ const templatesPath =
   serverlessBuilder.templatesPath || join(process.cwd(), "templates");
 const mappingTemplatesPath = join(process.cwd(), "mapping-templates");
 const handlersPath =
-  serverlessBuilder.handlersPath || join(process.cwd(), "handlers.js");
+  serverlessBuilder.handlersPath ||
+  joinExists(process.cwd(), "handlers.ts") ||
+  joinExists(process.cwd(), "handlers.js");
 const wrapperBasePath =
   serverlessBuilder.wrapperBasePath ||
+  joinExists([process.cwd(), __dirname], "templates", "wrapper_base.ts") ||
   joinExists([process.cwd(), __dirname], "templates", "wrapper_base.js");
-const baseFileName = basename(handlersPath, ".js");
+const ext = extname(handlersPath);
+const baseFileName = basename(handlersPath, ext);
 
 if (existsSync(mappingTemplatesPath)) rimraf.sync(mappingTemplatesPath);
 const text = readFileSync(handlersPath, { encoding: "UTF8" });
