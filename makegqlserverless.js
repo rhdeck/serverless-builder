@@ -416,7 +416,10 @@ const wrapperText = mustache.render(wrapperBase, {
   handlersPath: "./" + relative(process.cwd(), handlersPath),
   resolvers: gqlparts && gqlparts.join("\n"),
 });
-writeFileSync(join(process.cwd(), baseFileName + "_wrapper.js"), wrapperText);
+writeFileSync(
+  join(process.cwd(), baseFileName + "_wrapper" + ext),
+  wrapperText
+);
 baseObj.functions = { ...(baseObj.functions || {}), ...functions };
 if (gqlparts.length) {
   baseObj.functions.appSyncResolver = {
