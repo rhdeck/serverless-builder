@@ -90,14 +90,31 @@ const defaultTemplatesPath = join(__dirname, "templates");
 const templatesPath =
   serverlessBuilder.templatesPath || join(process.cwd(), "templates");
 const mappingTemplatesPath = join(process.cwd(), "mapping-templates");
-const handlersPath =
-  serverlessBuilder.handlersPath ||
-  joinExists(process.cwd(), "handlers.ts") ||
-  joinExists(process.cwd(), "handlers.js");
-const wrapperBasePath =
-  serverlessBuilder.wrapperBasePath ||
-  joinExists([process.cwd(), __dirname], "templates", "wrapper_base.ts") ||
-  joinExists([process.cwd(), __dirname], "templates", "wrapper_base.js");
+let handlersPath = serverlessBuilder.handlersPath;
+if (!handlersPath) {
+  try {
+    handlersPath = joinExists(process.cwd(), "handlers.ts");
+  } catch (e) {
+    handlersPath = joinExists(process.cwd(), "handlers.js");
+  }
+}
+let wrapperBasePath = serverlessBuilder.wrapperBasePath;
+if (!wrapperBasePath) {
+  try {
+    wrapperBasePath = joinExists(
+      [process.cwd(), __dirname],
+      "templates",
+      "wrapper_base.ts"
+    );
+  } catch (e) {
+    wrapperBasePath = joinExists(
+      [process.cwd(), __dirname],
+      "templates",
+      "wrapper_base.js"
+    );
+  }
+}
+
 const ext = extname(handlersPath);
 const baseFileName = basename(handlersPath, ext);
 
