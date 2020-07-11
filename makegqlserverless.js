@@ -430,9 +430,7 @@ const wrapperText = mustache.render(wrapperBase, {
   aliases: aliases.join(","),
   wrappers: wrappers.join("\n"),
   exporteds: exporteds.length ? "," + [exporteds].join("\n") : null,
-  handlersPath:
-    "./" +
-    relative(process.cwd(), handlersPath.substring(0, handlersPath.length - 3)),
+  handlersPath: "./" + relative(process.cwd(), handlersPath), //.substring(0, handlersPath.length - 3)),
   resolvers: gqlparts && gqlparts.join("\n"),
 });
 writeFileSync(
