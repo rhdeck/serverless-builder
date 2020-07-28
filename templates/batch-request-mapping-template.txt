@@ -4,9 +4,9 @@
     "operation": "BatchInvoke",
     "payload": {
         "func": "{{{functionName}}}",
-        "arguments": $util.toJson($context.arguments),
+        "args": $util.toJson($context.arguments),
         "identity": $util.toJson($context.identity),
-        "source": $util.toJson($context.source),
+        "parent": $util.toJson($context.source),
         "headers": $util.toJson($context.request.headers),
         "isBatch": true
     }
