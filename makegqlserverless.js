@@ -184,12 +184,10 @@ const pairs = lines.reduce((out, thisLine) => {
   } else return out;
 }, []);
 const pairInfo = pairs.reduce((out, thisPair) => {
-  const line2words = thisPair[1]
-    .split(" ")
-    .filter(Boolean)
-    [("export", "const")].forEach((word) => {
-      if (line2Words[0] === word) line2words.splice(0, 1);
-    });
+  const line2words = thisPair[1].split(" ").filter(Boolean);
+  ["export", "const"].forEach((word) => {
+    if (line2words[0] === word) line2words.splice(0, 1);
+  });
   const functionName = line2words[0];
   let functionInfo = thisPair[0]
     .split(" ")
